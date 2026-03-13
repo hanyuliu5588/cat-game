@@ -14,8 +14,11 @@ export class Ribbon {
     ];
     this.color = schemes[Math.floor(Math.random() * schemes.length)];
 
-    this.radius = 40; // 碰撞半径（头部）
-    this.width = 18;  // 飘带宽度
+    // 长度放大 1.2~1.5 倍，粗细放大 1.3~1.6 倍
+    const lenScale = 1.2 + Math.random() * 0.3;
+    const widthScale = 1.3 + Math.random() * 0.3;
+    this.radius = 40 * lenScale; // 碰撞半径随长度放大
+    this.width = Math.round(18 * widthScale); // 粗细 23~29
 
     // 从边缘出现
     const side = Math.floor(Math.random() * 4);
@@ -39,7 +42,7 @@ export class Ribbon {
     for (let i = 0; i < this.segCount; i++) {
       this.segments.push({ x: this.x, y: this.y });
     }
-    this.segLen = 22; // 每节长度
+    this.segLen = Math.round(22 * lenScale); // 每节长度放大 1.2~1.5 倍（约 26~33）
 
     // 方向随机变化
     this.dirTimer = 0;
@@ -56,6 +59,14 @@ export class Ribbon {
     this.hitAnim = 0;
     this.alive = true;
     this.opacity = 0;
+
+    // ===== 走走停停（伏击模式）=====
+    this.pauseTimer = 0;
+    this.pauseInterval = 1800 + Math.random() * 2500; // 1.8~4.3秒后停顿
+    this.isPaused = false;
+    this.pauseDuration = 0;
+    this.savedVx = this.vx;
+    this.savedVy = this.vy;
   }
 
   update(dt) {
@@ -69,6 +80,31 @@ export class Ribbon {
 
     this.wavePhase += this.waveFreq;
 
+    // ===== 走走停停逻辑 =====
+    this.pauseTimer += dt;
+    if (!this.isPaused && this.pauseTimer >= this.pauseInterval) {
+      this.isPaused = true;
+      this.pauseTimer = 0;
+      this.pauseDuration = 600 + Math.random() * 1800; // 停0.6~2.4秒
+      this.savedVx = this.vx;
+      this.savedVy = this.vy;
+      this.targetVx = 0;
+      this.targetVy = 0;
+    } else if (this.isPaused && this.pauseTimer >= this.pauseDuration) {
+      this.isPaused = false;
+      this.pauseTimer = 0;
+      this.pauseInterval = 1800 + Math.random() * 2500;
+      // 冲刺：速度1.5~2.5倍，随机偏转
+      const burstScale = 1.5 + Math.random() * 1.0;
+      const oldAngle = Math.atan2(this.savedVy, this.savedVx);
+      const newAngle = oldAngle + (Math.random() - 0.5) * Math.PI * 0.7;
+      const speed = Math.sqrt(this.savedVx ** 2 + this.savedVy ** 2) * burstScale;
+      this.targetVx = Math.cos(newAngle) * speed;
+      this.targetVy = Math.sin(newAngle) * speed;
+      this.savedVx = this.targetVx;
+      this.savedVy = this.targetVy;
+    }
+
     // 方向变化
     this.dirTimer += dt;
     if (this.dirTimer >= this.dirInterval) {
@@ -79,8 +115,8 @@ export class Ribbon {
       this.targetVx = Math.cos(newAngle) * speed;
       this.targetVy = Math.sin(newAngle) * speed;
     }
-    this.vx += (this.targetVx - this.vx) * 0.025;
-    this.vy += (this.targetVy - this.vy) * 0.025;
+    this.vx += (this.targetVx - this.vx) * (this.isPaused ? 0.15 : 0.025);
+    this.vy += (this.targetVy - this.vy) * (this.isPaused ? 0.15 : 0.025);
 
     // 移动头部
     this.x += this.vx;

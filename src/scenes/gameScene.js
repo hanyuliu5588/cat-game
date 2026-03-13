@@ -1,5 +1,5 @@
 // ===== 游戏场景 =====
-import { Ball } from '../objects/Ball.js';
+import { Ball, RUBBER_BALL_COLORS } from '../objects/Ball.js';
 import { Ribbon } from '../objects/Ribbon.js';
 import { Gecko } from '../objects/Gecko.js';
 import { spawnExplosion } from '../effects/particles.js';
@@ -40,6 +40,8 @@ export class GameScene {
     this.hitCount = 0;   // 触及次数
     this.spawnTimer = 0;
     this.stars = makeStars(this.W, this.H);
+    // 橡皮球颜色轮转索引（保证同屏颜色不重复）
+    this._rubberColorIdx = 0;
 
     this._onPointer = this._onPointer.bind(this);
     canvas.addEventListener('pointerdown', this._onPointer);
@@ -67,7 +69,21 @@ export class GameScene {
     const type = types[Math.floor(Math.random() * types.length)];
     const s = this.config.speedMult;
     let obj;
-    if (type === 'rubber') obj = new Ball(this.W, this.H, 'rubber', s);
+    if (type === 'rubber') {
+      // 分配下一个颜色，跳过已在场的橡皮球颜色
+      const usedColors = new Set(
+        this.targets
+          .filter(t => t instanceof Ball && t.type === 'rubber' && t.alive && !t.hit)
+          .map(t => RUBBER_BALL_COLORS.indexOf(t.rubberColor))
+      );
+      let colorIdx = this._rubberColorIdx;
+      for (let i = 0; i < RUBBER_BALL_COLORS.length; i++) {
+        const candidate = (this._rubberColorIdx + i) % RUBBER_BALL_COLORS.length;
+        if (!usedColors.has(candidate)) { colorIdx = candidate; break; }
+      }
+      this._rubberColorIdx = (colorIdx + 1) % RUBBER_BALL_COLORS.length;
+      obj = new Ball(this.W, this.H, 'rubber', s, colorIdx);
+    }
     else if (type === 'yarn') obj = new Ball(this.W, this.H, 'yarn', s);
     else if (type === 'ribbon') obj = new Ribbon(this.W, this.H, s);
     else obj = new Gecko(this.W, this.H, s);

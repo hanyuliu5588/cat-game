@@ -1,17 +1,36 @@
 // ===== 球体（橡皮球 / 毛线球）=====
 import { playBounceSound } from '../audio.js';
 
+// 橡皮球颜色池（对猫视觉敏感的高饱和色，同屏区分）
+export const RUBBER_BALL_COLORS = [
+  { fill: '#2080ff', shadow: '#0040c0' }, // 蓝
+  { fill: '#20c040', shadow: '#008020' }, // 绿
+  { fill: '#f0d020', shadow: '#a08000' }, // 黄
+  { fill: '#f07020', shadow: '#a03000' }, // 橙
+  { fill: '#20d0d0', shadow: '#008080' }, // 青
+  { fill: '#a040e0', shadow: '#600090' }, // 紫
+];
+
 export class Ball {
-  constructor(W, H, type = 'rubber', speedMult = 1) {
+  constructor(W, H, type = 'rubber', speedMult = 1, colorIndex = -1) {
     this.W = W;
     this.H = H;
     this.type = type;
 
-    // 毛线球：随机大小；橡皮球：固定范围
+    // 毛线球：随机大小；橡皮球：放大1.3~1.5倍随机
     if (type === 'yarn') {
       this.radius = 20 + Math.random() * 32; // 20~52，大小不恒定
     } else {
-      this.radius = 28 + Math.random() * 10;
+      const base = 28 + Math.random() * 10; // 原始 28~38
+      const scale = 1.3 + Math.random() * 0.2; // 1.3~1.5
+      this.radius = base * scale; // 约 36~57
+    }
+
+    // 橡皮球颜色（由外部传入 colorIndex 保证同屏不重复）
+    if (type === 'rubber') {
+      const idx = colorIndex >= 0 ? colorIndex % RUBBER_BALL_COLORS.length
+        : Math.floor(Math.random() * RUBBER_BALL_COLORS.length);
+      this.rubberColor = RUBBER_BALL_COLORS[idx];
     }
 
     // 毛线球颜色
@@ -55,6 +74,14 @@ export class Ball {
 
     // 毛线球被击中后：继续运动滚出屏幕
     this.rollingOut = false;
+
+    // ===== 走走停停（伏击模式）=====
+    this.pauseTimer = 0;
+    this.pauseInterval = 1500 + Math.random() * 2500; // 1.5~4秒后停顿
+    this.isPaused = false;
+    this.pauseDuration = 0;
+    this.savedVx = this.vx;
+    this.savedVy = this.vy;
   }
 
   _darken(hex, factor) {
@@ -65,6 +92,35 @@ export class Ball {
   }
 
   update(dt) {
+    // 走走停停逻辑（橡皮球和毛线球）
+    if (!this.hit && !this.rollingOut && this.hitAnim <= 0) {
+      this.pauseTimer += dt;
+      if (!this.isPaused && this.pauseTimer >= this.pauseInterval) {
+        // 进入停顿
+        this.isPaused = true;
+        this.pauseTimer = 0;
+        this.pauseDuration = 500 + Math.random() * 1500; // 停0.5~2秒
+        this.savedVx = this.vx;
+        this.savedVy = this.vy;
+        this.vx = 0;
+        this.vy = 0;
+      } else if (this.isPaused && this.pauseTimer >= this.pauseDuration) {
+        // 结束停顿，突然冲刺（速度1.5~2.5倍）
+        this.isPaused = false;
+        this.pauseTimer = 0;
+        this.pauseInterval = 1500 + Math.random() * 2500;
+        const burstScale = 1.5 + Math.random() * 1.0;
+        // 随机偏转方向
+        const oldAngle = Math.atan2(this.savedVy, this.savedVx);
+        const newAngle = oldAngle + (Math.random() - 0.5) * Math.PI * 0.6;
+        const speed = Math.sqrt(this.savedVx ** 2 + this.savedVy ** 2) * burstScale;
+        this.vx = Math.cos(newAngle) * speed;
+        this.vy = Math.sin(newAngle) * speed;
+        this.savedVx = this.vx;
+        this.savedVy = this.vy;
+      }
+    }
+
     // 毛线球被击中后：继续运动直到滚出屏幕
     if (this.rollingOut) {
       this.x += this.vx;
@@ -202,13 +258,16 @@ export class Ball {
   }
 
   _drawTennisBall(ctx, r) {
+    const c = this.rubberColor || { fill: '#d4f040', shadow: 'rgba(160,200,30,0.4)' };
+    // 高光色（fill 加亮）
+    const lighterFill = this._lighten(c.fill, 1.5);
     const grad = ctx.createRadialGradient(-r * 0.3, -r * 0.3, r * 0.1, 0, 0, r);
-    grad.addColorStop(0, '#d4f040');
-    grad.addColorStop(0.6, '#a8c820');
-    grad.addColorStop(1, '#6a8010');
+    grad.addColorStop(0, lighterFill);
+    grad.addColorStop(0.6, c.fill);
+    grad.addColorStop(1, c.shadow);
     ctx.fillStyle = grad;
-    ctx.shadowColor = 'rgba(160,200,30,0.4)';
-    ctx.shadowBlur = 12;
+    ctx.shadowColor = c.fill + '88';
+    ctx.shadowBlur = 16;
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.fill();
