@@ -1,0 +1,7 @@
+services:
+  cat-game:
+    image: crpi-ebbvkvi11nuretfo.cn-shanghai.personal.cr.aliyuncs.com/hanyuliu1/catgame:latest
+    container_name: cat-game
+    restart: unless-stopped
+    ports:
+      - "8080:80"   # 左边是 NAS 端口，可以改成你想要的端口
