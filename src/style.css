@@ -1,0 +1,235 @@
+/* ===== 基础重置 ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0d0d1a;
+  font-family: 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  touch-action: none;
+}
+
+/* ===== 游戏画布 ===== */
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 0;
+}
+
+/* ===== 得分显示 ===== */
+#score-display {
+  position: fixed;
+  top: 18px;
+  right: 24px;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 200, 0, 0.8);
+  pointer-events: none;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 6px 20px;
+  border-radius: 30px;
+  display: none;
+}
+
+/* ===== 主菜单遮罩 ===== */
+#menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 8, 25, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* ===== 菜单卡片 ===== */
+.menu-card {
+  background: linear-gradient(145deg, #1e1a3a, #2a1f4a);
+  border: 1.5px solid rgba(180, 130, 255, 0.3);
+  border-radius: 28px;
+  padding: 40px 36px 32px;
+  width: min(480px, 90vw);
+  box-shadow: 0 8px 40px rgba(120, 60, 220, 0.35), 0 0 0 1px rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.menu-title {
+  font-size: clamp(2rem, 6vw, 2.8rem);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(200, 150, 255, 0.7);
+  letter-spacing: 2px;
+}
+
+.menu-subtitle {
+  font-size: 1rem;
+  color: rgba(200, 180, 255, 0.75);
+  margin-top: -12px;
+}
+
+/* ===== 目标物选项 ===== */
+.target-options {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.target-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  border: 2px solid rgba(180, 130, 255, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  flex: 1;
+}
+
+.target-option input[type=checkbox] {
+  display: none;
+}
+
+.target-option .target-icon {
+  font-size: 2.4rem;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.target-option .target-label {
+  font-size: 0.9rem;
+  color: rgba(200, 180, 255, 0.7);
+  font-weight: 600;
+}
+
+.target-option.selected {
+  border-color: #b47fff;
+  background: rgba(180, 127, 255, 0.18);
+  box-shadow: 0 0 16px rgba(180, 127, 255, 0.3);
+}
+
+.target-option.selected .target-icon {
+  transform: scale(1.15);
+}
+
+.target-option.selected .target-label {
+  color: #e0c8ff;
+}
+
+/* ===== 速度滑块 ===== */
+.speed-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.speed-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: rgba(200, 180, 255, 0.8);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.speed-label span:last-child {
+  color: #c8a0ff;
+  font-weight: 700;
+  min-width: 40px;
+  text-align: right;
+}
+
+input[type=range]#speed-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #7b4fff, #c87fff);
+  outline: none;
+  cursor: pointer;
+}
+
+input[type=range]#speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(180, 127, 255, 0.7);
+  cursor: pointer;
+  border: 3px solid #b47fff;
+}
+
+input[type=range]#speed-slider::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(180, 127, 255, 0.7);
+  cursor: pointer;
+  border: 3px solid #b47fff;
+}
+
+.speed-ticks {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(180, 150, 220, 0.5);
+  font-size: 0.75rem;
+}
+
+/* ===== 开始按钮 ===== */
+#start-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #7b4fff, #c040ff);
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 20px rgba(160, 60, 255, 0.5);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  touch-action: manipulation;
+}
+
+#start-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 10px rgba(160, 60, 255, 0.4);
+}
+
+/* ===== 错误提示 ===== */
+.menu-error {
+  color: #ff7070;
+  font-size: 0.9rem;
+  min-height: 1.2em;
+  text-align: center;
+  margin-top: -12px;
+}
