@@ -27,10 +27,16 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
+      - name: 获取 Git Short Hash
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
       - name: 构建并推送多平台镜像（amd64 + arm64）
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: crpi-ebbvkvi11nuretfo.cn-shanghai.personal.cr.aliyuncs.com/hanyuliu1/catgame:latest
+          tags: |
+            crpi-ebbvkvi11nuretfo.cn-shanghai.personal.cr.aliyuncs.com/hanyuliu1/catgame:latest
+            crpi-ebbvkvi11nuretfo.cn-shanghai.personal.cr.aliyuncs.com/hanyuliu1/catgame:${{ steps.vars.outputs.sha_short }}
