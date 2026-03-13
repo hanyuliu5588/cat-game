@@ -1,5 +1,6 @@
 # ===== 阶段1：构建 =====
-FROM node:20-alpine AS builder
+# 使用阿里云镜像源的 node:20-alpine
+FROM registry.cn-hangzhou.aliyuncs.com/library/node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -13,7 +14,8 @@ COPY . .
 RUN npm run build
 
 # ===== 阶段2：运行（nginx 静态服务）=====
-FROM nginx:alpine
+# 使用阿里云镜像源的 nginx:alpine
+FROM registry.cn-hangzhou.aliyuncs.com/library/nginx:alpine
 
 # 删除默认页面
 RUN rm -rf /usr/share/nginx/html/*
@@ -21,7 +23,7 @@ RUN rm -rf /usr/share/nginx/html/*
 # 复制构建产物
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# nginx 配置：支持 SPA 路由（虽然本项目是单页，保险起见）
+# nginx 配置：支持 SPA 路由，开启 gzip
 RUN printf 'server {\n\
     listen 80;\n\
     root /usr/share/nginx/html;\n\
@@ -31,7 +33,6 @@ RUN printf 'server {\n\
     location / {\n\
         try_files $uri $uri/ /index.html;\n\
     }\n\
-    # 静态资源长缓存\n\
     location /assets/ {\n\
         expires 1y;\n\
         add_header Cache-Control "public, immutable";\n\
