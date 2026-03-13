@@ -40,6 +40,8 @@ export class Ball {
 
     // 物理 — 无重力，弹射运动
     const baseSpeed = (3.5 + Math.random() * 2) * speedMult;
+    this.baseSpeed = baseSpeed;           // 记录基础速度，用于限速
+    this.maxSpeed = baseSpeed * 2.2;      // 最高速度上限 = 基础速度的2.2倍
     const angle = Math.random() * Math.PI * 2;
     this.x = W * 0.2 + Math.random() * W * 0.6;
     this.y = H * 0.2 + Math.random() * H * 0.4;
@@ -105,15 +107,15 @@ export class Ball {
         this.vx = 0;
         this.vy = 0;
       } else if (this.isPaused && this.pauseTimer >= this.pauseDuration) {
-        // 结束停顿，突然冲刺（速度1.5~2.5倍）
+        // 结束停顿，突然冲刺（基于基础速度的1.3~2倍，不累加）
         this.isPaused = false;
         this.pauseTimer = 0;
         this.pauseInterval = 1500 + Math.random() * 2500;
-        const burstScale = 1.5 + Math.random() * 1.0;
-        // 随机偏转方向
+        const burstScale = 1.3 + Math.random() * 0.7; // 基础速度的1.3~2倍
+        // 随机偏转方向（基于上次运动方向）
         const oldAngle = Math.atan2(this.savedVy, this.savedVx);
         const newAngle = oldAngle + (Math.random() - 0.5) * Math.PI * 0.6;
-        const speed = Math.sqrt(this.savedVx ** 2 + this.savedVy ** 2) * burstScale;
+        const speed = Math.min(this.baseSpeed * burstScale, this.maxSpeed); // 限速
         this.vx = Math.cos(newAngle) * speed;
         this.vy = Math.sin(newAngle) * speed;
         this.savedVx = this.vx;

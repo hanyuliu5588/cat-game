@@ -33,6 +33,8 @@ export class Ribbon {
     const dx = cx - this.x, dy = cy - this.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     const baseSpeed = (2.0 + Math.random() * 1.5) * speedMult;
+    this.baseSpeed = baseSpeed;       // 记录基础速度
+    this.maxSpeed = baseSpeed * 2.2;  // 最高速度上限
     this.vx = (dx / dist) * baseSpeed;
     this.vy = (dy / dist) * baseSpeed;
 
@@ -94,11 +96,11 @@ export class Ribbon {
       this.isPaused = false;
       this.pauseTimer = 0;
       this.pauseInterval = 1800 + Math.random() * 2500;
-      // 冲刺：速度1.5~2.5倍，随机偏转
-      const burstScale = 1.5 + Math.random() * 1.0;
+      // 冲刺：基于基础速度的1.3~2倍，不累加
+      const burstScale = 1.3 + Math.random() * 0.7;
       const oldAngle = Math.atan2(this.savedVy, this.savedVx);
       const newAngle = oldAngle + (Math.random() - 0.5) * Math.PI * 0.7;
-      const speed = Math.sqrt(this.savedVx ** 2 + this.savedVy ** 2) * burstScale;
+      const speed = Math.min(this.baseSpeed * burstScale, this.maxSpeed); // 限速
       this.targetVx = Math.cos(newAngle) * speed;
       this.targetVy = Math.sin(newAngle) * speed;
       this.savedVx = this.targetVx;
