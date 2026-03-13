@@ -1,6 +1,5 @@
 # ===== 阶段1：构建 =====
-# 使用阿里云镜像源的 node:20-alpine
-FROM registry.cn-hangzhou.aliyuncs.com/library/node:20-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -14,8 +13,7 @@ COPY . .
 RUN npm run build
 
 # ===== 阶段2：运行（nginx 静态服务）=====
-# 使用阿里云镜像源的 nginx:alpine
-FROM registry.cn-hangzhou.aliyuncs.com/library/nginx:alpine
+FROM nginx:alpine
 
 # 删除默认页面
 RUN rm -rf /usr/share/nginx/html/*
